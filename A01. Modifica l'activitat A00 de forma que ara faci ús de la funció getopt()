@@ -6,7 +6,7 @@ if (php_sapi_name() !== 'cli') {
     exit("Este script debe ser ejecutado desde la línea de comandos (CLI).\n");
 }
 
-// Obtener la ejecución usando getopt a=añadir, b=borrar, l=listar y m=marcar
+// Ejecución usando getopt a=añadir, b=borrar, l=listar y m=marcar
 $options = getopt('a:b:lm:');
 
 // Obtener el comando y ejecutar la acción deseada
