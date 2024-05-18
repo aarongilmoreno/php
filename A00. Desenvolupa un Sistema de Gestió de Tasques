@@ -1,0 +1,118 @@
+<?php
+const ARCHIVO_TAREAS = 'tareas.csv';
+
+// Con lo siguiente se revisa que se esté ejecutando desde CLI
+if (php_sapi_name() !== 'cli') {
+    exit("Este script debe ser ejecutado desde la línea de comandos (CLI).\n");
+}
+
+// Verificar cantidad de argumentos
+if ($argc < 2) {
+    exit("Uso: php task_manager.php <comando> [argumentos]\n");
+}
+
+// Obtener el comando y ejecutar la acción deseada
+$comando = $argv[1];
+switch ($comando) {
+    case 'add':
+        agregarTarea($argv);
+        break;
+    case 'list':
+        listarTareas();
+        break;
+    case 'complete':
+        marcarComoCompletada($argv);
+        break;
+    case 'delete':
+        eliminarTarea($argv);
+        break;
+    default:
+        exit("Comando no reconocido. Comandos válidos: add, list, complete, delete\n");
+}
+
+// Función para agregar una tarea
+function agregarTarea($args) {
+    if (count($args) < 3) {
+        exit("Uso: php task_manager.php add <descripción>\n");
+    }
+    $descripcion = implode(' ', array_slice($args, 2));
+    $registro = [$descripcion, 'pendiente'];
+    agregarRegistro(ARCHIVO_TAREAS, $registro);
+    echo "Tarea agregada correctamente: $descripcion\n";
+}
+
+// Función para listar las tareas
+function listarTareas() {
+    $tareas = leerArchivo(ARCHIVO_TAREAS);
+    if (!$tareas) {
+        echo "No hay tareas disponibles.\n";
+    } else {
+        echo "Lista de tareas:\n";
+        foreach ($tareas as $indice => $tarea) {
+            echo "$indice: $tarea[0] (Estado: $tarea[1])\n";
+        }
+    }
+}
+
+// Función para marcar una tarea como completada
+function marcarComoCompletada($args) {
+    if (count($args) < 3) {
+        exit("Uso: php task_manager.php complete <índice_tarea>\n");
+    }
+    $indice = (int)$args[2];
+    $tareas = leerArchivo(ARCHIVO_TAREAS);
+    if (isset($tareas[$indice])) {
+        $tareas[$indice][1] = 'completada';
+        guardarArchivo(ARCHIVO_TAREAS, $tareas);
+        echo "Tarea marcada como completada: {$tareas[$indice][0]}\n";
+    } else {
+        exit("Índice de tarea no válido.\n");
+    }
+}
+
+// Función para eliminar una tarea
+function eliminarTarea($args) {
+    if (count($args) < 3) {
+        exit("Uso: php task_manager.php delete <índice_tarea>\n");
+    }
+    $indice = (int)$args[2];
+    $tareas = leerArchivo(ARCHIVO_TAREAS);
+    if (isset($tareas[$indice])) {
+        unset($tareas[$indice]);
+        $tareas = array_values($tareas); // Reindexar el array
+        guardarArchivo(ARCHIVO_TAREAS, $tareas);
+        echo "Tarea eliminada.\n";
+    } else {
+        exit("Índice de tarea no válido.\n");
+    }
+}
+
+// Función para agregar lo que realicemos al archivo CSV
+function agregarRegistro($archivo, $registro) {
+    $manejador = fopen($archivo, 'a');
+    fputcsv($manejador, $registro);
+    fclose($manejador);
+}
+
+// Función para leer el archivo CSV y devolverlo como array
+function leerArchivo($archivo) {
+    $tareas = [];
+    if (file_exists($archivo)) {
+        $manejador = fopen($archivo, 'r');
+        while (($datos = fgetcsv($manejador)) !== false) {
+            $tareas[] = $datos;
+        }
+        fclose($manejador);
+    }
+    return $tareas;
+}
+
+// Función para guardar el array en el archivo CSV
+function guardarArchivo($archivo, $datos) {
+    $manejador = fopen($archivo, 'w');
+    foreach ($datos as $registro) {
+        fputcsv($manejador, $registro);
+    }
+    fclose($manejador);
+}
+?>
