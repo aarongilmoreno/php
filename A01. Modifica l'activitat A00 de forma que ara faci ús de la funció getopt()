@@ -1,7 +1,7 @@
 <?php
 const ARCHIVO_TAREAS = 'tareas.csv';
 
-// Verificar que se está ejecutando desde la CLI
+// Con lo siguiente se revisa que se esté ejecutando desde CLI
 if (php_sapi_name() !== 'cli') {
     exit("Este script debe ser ejecutado desde la línea de comandos (CLI).\n");
 }
