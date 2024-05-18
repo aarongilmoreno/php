@@ -6,8 +6,8 @@ if (php_sapi_name() !== 'cli') {
     exit("Este script debe ser ejecutado desde la línea de comandos (CLI).\n");
 }
 
-// Obtener la ejecución usando getopt
-$options = getopt('a:d:l:m:');
+// Obtener la ejecución usando getopt a=añadir, b=borrar, l=listar y m=marcar
+$options = getopt('a:b:l:m:');
 
 // Obtener el comando y ejecutar la acción deseada
 if (isset($options['a'])) {
@@ -16,10 +16,10 @@ if (isset($options['a'])) {
     listarTareas();
 } elseif (isset($options['m'])) {
     marcarComoCompletada($options['m']);
-} elseif (isset($options['d'])) {
-    eliminarTarea($options['d']);
+} elseif (isset($options['b'])) {
+    eliminarTarea($options['b']);
 } else {
-    exit("Uso: php task_manager.php -a <descripción> | -l | -m <índice> | -d <índice>\n");
+    exit("Uso: php task_manager.php -a <descripción> | -l | -m <índice> | -b <índice>\n");
 }
 
 // Función para agregar una tarea
