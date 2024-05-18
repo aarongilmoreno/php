@@ -1,13 +1,13 @@
 <?php
 const ARCHIVO_TAREAS = 'tareas.csv';
 
-// Con lo siguiente se revisa que se esté ejecutando desde CLI
+// Verificar que se está ejecutando desde la CLI
 if (php_sapi_name() !== 'cli') {
     exit("Este script debe ser ejecutado desde la línea de comandos (CLI).\n");
 }
 
 // Obtener la ejecución usando getopt a=añadir, b=borrar, l=listar y m=marcar
-$options = getopt('a:b:l:m:');
+$options = getopt('a:b:lm:');
 
 // Obtener el comando y ejecutar la acción deseada
 if (isset($options['a'])) {
