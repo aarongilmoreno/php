@@ -1,0 +1,120 @@
+<?php
+const ARCHIVO_TAREAS = '/var/www/tareas.csv';
+
+// Verificar que se está ejecutando desde la CLI
+if (php_sapi_name() !== 'cli') {
+    exit("Este script debe ser ejecutado desde la línea de comandos (CLI).\n");
+}
+
+// Verificar si el archivo CSV existe
+if (!file_exists(ARCHIVO_TAREAS)) {
+    primeraEjecucion();
+}
+
+// Obtener la ejecución usando getopt a=añadir, b=borrar, l=listar y m=marcar
+$options = getopt('a:b:lm:');
+
+// Obtener el comando y ejecutar la acción deseada
+if (isset($options['a'])) {
+    agregarTarea($options['a']);
+} elseif (isset($options['l'])) {
+    listarTareas();
+} elseif (isset($options['m'])) {
+    marcarComoCompletada($options['m']);
+} elseif (isset($options['b'])) {
+    eliminarTarea($options['b']);
+} else {
+    exit("Uso: php task_manager.php -a <descripción> | -l | -m <índice> | -b <índice>\n");
+}
+
+// Función para la primera ejecución
+function primeraEjecucion() {
+    echo "Primera ejecución detectada. Seleccione el método de almacenamiento de datos:\n";
+    echo "1. Archivo CSV\n";
+    echo "Ingrese el número de su elección: ";
+    $eleccion = trim(fgets(STDIN));
+
+    if ($eleccion == '1') {
+        // Crear el archivo CSV vacío
+        $handle = fopen(ARCHIVO_TAREAS, 'w');
+        fclose($handle);
+        echo "Método de almacenamiento configurado: Archivo CSV en " . ARCHIVO_TAREAS . "\n";
+    } else {
+        exit("Opción no válida.\n");
+    }
+}
+
+// Función para agregar una tarea
+function agregarTarea($descripcion) {
+    $registro = [$descripcion, 'pendiente'];
+    agregarRegistro(ARCHIVO_TAREAS, $registro);
+    echo "Tarea agregada correctamente: $descripcion\n";
+}
+
+// Función para listar las tareas
+function listarTareas() {
+    $tareas = leerArchivo(ARCHIVO_TAREAS);
+    if (!$tareas) {
+        echo "No hay tareas disponibles.\n";
+    } else {
+        echo "Lista de tareas:\n";
+        foreach ($tareas as $indice => $tarea) {
+            echo "$indice: $tarea[0] (Estado: $tarea[1])\n";
+        }
+    }
+}
+
+// Función para marcar una tarea como completada
+function marcarComoCompletada($indice) {
+    $tareas = leerArchivo(ARCHIVO_TAREAS);
+    if (isset($tareas[$indice])) {
+        $tareas[$indice][1] = 'completada';
+        guardarArchivo(ARCHIVO_TAREAS, $tareas);
+        echo "Tarea marcada como completada: {$tareas[$indice][0]}\n";
+    } else {
+        exit("Índice de tarea no válido.\n");
+    }
+}
+
+// Función para eliminar una tarea
+function eliminarTarea($indice) {
+    $tareas = leerArchivo(ARCHIVO_TAREAS);
+    if (isset($tareas[$indice])) {
+        unset($tareas[$indice]);
+        $tareas = array_values($tareas); // Reindexar el array
+        guardarArchivo(ARCHIVO_TAREAS, $tareas);
+        echo "Tarea eliminada.\n";
+    } else {
+        exit("Índice de tarea no válido.\n");
+    }
+}
+
+// Función para agregar lo que realicemos al archivo CSV
+function agregarRegistro($archivo, $registro) {
+    $manejador = fopen($archivo, 'a');
+    fputcsv($manejador, $registro);
+    fclose($manejador);
+}
+
+// Función para leer el archivo CSV y devolverlo como array
+function leerArchivo($archivo) {
+    $tareas = [];
+    if (file_exists($archivo)) {
+        $manejador = fopen($archivo, 'r');
+        while (($datos = fgetcsv($manejador)) !== false) {
+            $tareas[] = $datos;
+        }
+        fclose($manejador);
+    }
+    return $tareas;
+}
+
+// Función para guardar el array en el archivo CSV
+function guardarArchivo($archivo, $datos) {
+    $manejador = fopen($archivo, 'w');
+    foreach ($datos as $registro) {
+        fputcsv($manejador, $registro);
+    }
+    fclose($manejador);
+}
+?>
